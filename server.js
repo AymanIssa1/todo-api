@@ -46,9 +46,11 @@ app.get('/todos', function(request, response) {
 //GET/todos/id
 app.get('/todos/:id', function(request, response) {
     var todoId = parseInt(request.params.id, 10);
-    var matchedTodo = _.findWhere(todos, {
-        id: todoId
-    });
+    // var matchedTodo = _.findWhere(todos, {
+    //     id: todoId
+    // });
+
+    //version 1
     // var matchedTodo;
 
     // todos.forEach(function (todo) {
@@ -57,13 +59,26 @@ app.get('/todos/:id', function(request, response) {
     //     }
     // });
 
-    if (matchedTodo) {
-        response.json(matchedTodo);
-    } else {
-        response.status(404).send();
-    }
+    // version 2
+    // if (matchedTodo) {
+    //     response.json(matchedTodo);
+    // } else {
+    //     response.status(404).send();
+    // }
 
-    response.send('Asking for todo with id of ' + todoId);
+    // response.send('Asking for todo with id of ' + todoId);
+
+    //version 3
+
+    db.todo.findById(todoId).then(function(todo) {
+        if (!!todo) {
+            response.json(todo.toJSON());
+        } else {
+            response.status(404).send();
+        }
+    }, function(e) {
+        response.status(500).send();
+    });
 });
 
 
@@ -82,12 +97,11 @@ app.post('/todos', function(request, response) {
 
     // response.json(body);
 
-    db.todo.create(body).then(function (todo) {
+    db.todo.create(body).then(function(todo) {
         response.json(todo.toJSON());
-    },function (e) {
+    }, function(e) {
         response.status(400);
     });
-
 
 
 
