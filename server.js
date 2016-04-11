@@ -236,8 +236,18 @@ app.post('/users',function (request,response) {
     });
 });
 
+app.post('/users/login',function (request,response) {
+    var body = _.pick(request.body,"email","password");
 
-db.sequelize.sync().then(function() {
+    db.user.authenticate(body).then(function (user) {
+        response.json(user);
+    }, function () {
+        response.status(401).send();
+    });
+
+});
+
+db.sequelize.sync({force:true}).then(function() {
     app.listen(PORT, function() {
         console.log('Express listen on port ' + PORT + '!');
     });
