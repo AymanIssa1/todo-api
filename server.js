@@ -1,6 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
-var _ = require("underscore");
+var _ = require('underscore');
 var db = require('./db.js');
 
 var app = express();
@@ -226,29 +226,40 @@ app.put('/todos/:id', function(request, response) {
 
 });
 
-app.post('/users',function (request,response) {
+app.post('/users', function(request, response) {
 
-    var body = _.pick(request.body, "email","password");
+    var body = _.pick(request.body, "email", "password");
     db.user.create(body).then(function(user) {
         response.json(user.toJSON());
-    }, function (e) {
+    }, function(e) {
         response.status(400).json(e);
     });
 });
 
-app.post('/users/login',function (request,response) {
-    var body = _.pick(request.body,"email","password");
+app.post('/users/login', function(request, response) {
+    var body = _.pick(request.body, 'email', 'password');
 
-    db.user.authenticate(body).then(function (user) {
-        response.json(user);
-    }, function () {
+    db.user.authenticate(body).then(function(user) {
+
+        var token = user.generateToken('authentication');
+        console.log(token);
+
+        if (token) {
+            response.header('Auth', token).json(user.toPublicJSON());
+
+        } else {
+            response.status(401).send();
+        }
+    }, function() {
         response.status(401).send();
     });
 
 });
 
-db.sequelize.sync({force:true}).then(function() {
+db.sequelize.sync({
+    force: true
+}).then(function() {
     app.listen(PORT, function() {
         console.log('Express listen on port ' + PORT + '!');
     });
-})
+});
