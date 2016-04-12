@@ -175,7 +175,7 @@ app.post('/users/login', function(request, response) {
 });
 
 db.sequelize.sync({
-    // force: true
+    force: true
 }).then(function() {
     app.listen(PORT, function() {
         console.log('Express listen on port ' + PORT + '!');
