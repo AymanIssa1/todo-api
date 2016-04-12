@@ -23,7 +23,9 @@ app.get('/', function(request, response) {
 app.get('/todos', middleware.requireAuthentication, function(request, response) {
     var query = request.query;
 
-    var where = {};
+    var where = {
+        userId: request.user.get('id')
+    };
 
     if (query.hasOwnProperty('completed') && query.completed == 'true') {
         where.completed = true;
@@ -54,7 +56,12 @@ app.get('/todos', middleware.requireAuthentication, function(request, response) 
 app.get('/todos/:id', middleware.requireAuthentication, function(request, response) {
     var todoId = parseInt(request.params.id, 10);
 
-    db.todo.findById(todoId).then(function(todo) {
+    db.todo.findOne({
+        where: {
+            id: todoId,
+            userId: request.user.get('id')
+        }
+    }).then(function(todo) {
         if (!!todo) {
             response.json(todo.toJSON());
         } else {
@@ -70,9 +77,9 @@ app.post('/todos', middleware.requireAuthentication, function(request, response)
     var body = _.pick(request.body, "description", "completed");
 
     db.todo.create(body).then(function(todo) {
-        request.user.addTodo(todo).then(function () {
+        request.user.addTodo(todo).then(function() {
             return todo.reload();
-        }).then(function (todo) {
+        }).then(function(todo) {
             response.json(todo.toJSON());
         });
     }, function(e) {
@@ -86,7 +93,8 @@ app.delete('/todos/:id', middleware.requireAuthentication, function(request, res
 
     db.todo.destroy({
         where: {
-            id: todoId
+            id: todoId,
+            userId: request.user.get('id')
         }
     }).then(function(rowsDeleted) {
         if (rowsDeleted === 0) {
@@ -115,7 +123,12 @@ app.put('/todos/:id', middleware.requireAuthentication, function(request, respon
         attributes.description = body.description;
     }
 
-    db.todo.findById(todoId).then(function(todo) {
+    db.todo.findOne({
+        where: {
+            id: todoId,
+            userId: request.user.get('id')
+        }
+    }).then(function(todo) {
         if (todo) {
             return todo.update(attributes).then(function(todo) {
                 response.json(todo.toJSON());
@@ -162,7 +175,7 @@ app.post('/users/login', function(request, response) {
 });
 
 db.sequelize.sync({
-    force: true
+    // force: true
 }).then(function() {
     app.listen(PORT, function() {
         console.log('Express listen on port ' + PORT + '!');
