@@ -190,7 +190,7 @@ app.delete('/users/login', middleware.requireAuthentication, function (request,r
 });
 
 db.sequelize.sync({
-    force: true
+    // force: true
 }).then(function() {
     app.listen(PORT, function() {
         console.log('Express listen on port ' + PORT + '!');
